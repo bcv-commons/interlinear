@@ -1,0 +1,8 @@
+node_modules
+*.log
+.env
+
+# The actual SQLite data is no longer committed here — this project is kept
+# as reference code/API-contract documentation; a separate service now
+# serves this data in production. See README.md.
+data/*.db

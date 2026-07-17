@@ -1,0 +1,19 @@
+{
+	"name": "gbt-data-api",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"description": "Standalone HTTP data API for the Study App web port, backed by the same SQLite files the Flutter app ships as assets. Intended to run as a long-lived Docker container (e.g. on Hetzner), separate from the Netlify-hosted SvelteKit frontend.",
+	"scripts": {
+		"dev": "node --watch src/server.js",
+		"start": "node src/server.js",
+		"optimize-db": "node scripts/optimize-hebrew-greek-db.js"
+	},
+	"dependencies": {
+		"better-sqlite3": "^12.11.1",
+		"express": "^5.1.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": ["better-sqlite3"]
+	}
+}

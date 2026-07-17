@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+	font-family: 'SBL';
+	src: url('/fonts/sbl_blit.ttf') format('truetype');
+	font-display: swap;
+}
+
+@theme {
+	--font-sbl: 'SBL', 'SBL Hebrew', 'SBL Greek', serif;
+}
+
+html,
+body {
+	height: 100%;
+}
+
+body {
+	@apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+}

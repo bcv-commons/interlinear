@@ -1,0 +1,10 @@
+[build]
+  command = "pnpm build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# DATA_API_URL (and DATA_API_KEY, if the data-api service requires one) are
+# set as environment variables in the Netlify site's dashboard, not here —
+# see README.md.

@@ -1,0 +1,16 @@
+services:
+  data-api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      # Set this to require an `x-api-key` header on every request except
+      # /health. Leave unset only if this port is not reachable from the
+      # public internet (e.g. behind a firewall/private network).
+      DATA_API_KEY: ${DATA_API_KEY:-}
+    healthcheck:
+      test: ['CMD', 'node', '-e', 'fetch("http://localhost:3000/health").then(r=>process.exit(r.ok?0:1))']
+      interval: 30s
+      timeout: 5s
+      retries: 3
