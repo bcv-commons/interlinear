@@ -40,12 +40,16 @@ if (API_KEY) {
 	});
 }
 
-// A given chapter's / word's / Strong's code's data never changes at
-// runtime, so all responses below are safe to cache aggressively — both by
-// this API's own caller (the SvelteKit app) and by any CDN/proxy in front
-// of it.
-function cacheImmutable(res, maxAgeSeconds) {
-	res.set('Cache-Control', `public, max-age=${maxAgeSeconds}, immutable`);
+// A given chapter's / word's / Strong's code's data is stable for *this*
+// implementation (backed by static local .db files), but deliberately not
+// marked `immutable`: a real-world deployment of this same contract
+// (a separate service replacing this one in production) turned out to
+// actively correct/republish its data over time, and `immutable` would
+// have told every caller's browser to ignore that fix for the full
+// max-age. Short max-age + stale-while-revalidate keeps most of the
+// caching benefit without that risk.
+function cacheable(res, maxAgeSeconds) {
+	res.set('Cache-Control', `public, max-age=${maxAgeSeconds}, stale-while-revalidate=86400`);
 }
 
 app.get('/chapter/:book/:chapter', (req, res) => {
@@ -55,7 +59,7 @@ app.get('/chapter/:book/:chapter', (req, res) => {
 		return res.status(400).json({ error: 'Invalid book/chapter' });
 	}
 
-	cacheImmutable(res, 604_800); // 7 days
+	cacheable(res, 3600); // 1 hour
 	res.json({
 		hebrewGreekWords: getChapter(bookId, chapter),
 		translationLines: getTranslationChapter(bookId, chapter)
@@ -75,7 +79,7 @@ app.get('/word/:wordId', (req, res) => {
 
 	const { strongsCode, grammar } = strongsAndGrammar;
 
-	cacheImmutable(res, 604_800); // 7 days
+	cacheable(res, 3600); // 1 hour
 	res.json({
 		id: wordId,
 		text,
@@ -91,7 +95,7 @@ app.get('/word/:wordId', (req, res) => {
 
 app.get('/languages', (_req, res) => {
 	const codes = listGlossLanguages();
-	cacheImmutable(res, 3600); // 1 hour — short, since new .db files can be added without a full redeploy
+	cacheable(res, 3600); // 1 hour
 	res.json({
 		languages: codes.map((code) => ({ code, name: LANGUAGE_NAMES[code] ?? code }))
 	});
@@ -139,7 +143,7 @@ app.get('/similar/:strongsCode', (req, res) => {
 		};
 	});
 
-	cacheImmutable(res, 86_400); // 1 day
+	cacheable(res, 3600); // 1 hour
 	res.json({ root, total, verses });
 });
 

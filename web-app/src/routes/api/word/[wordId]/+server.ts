@@ -9,9 +9,11 @@ export const GET: RequestHandler = async ({ params, fetch, url }) => {
 
 	const details = await getWordDetails(fetch, wordId, langCode);
 
-	// A given word id's text/grammar/gloss/lexicon entries never change at
-	// runtime, so this is safe to cache aggressively.
+	// Short cache, not `immutable` — see the chapter route's load function
+	// for why: the backing data-api is a third-party service that can
+	// correct/republish data, and `immutable` would hide fixes from
+	// anyone with a cached copy for the full max-age.
 	return json(details, {
-		headers: { 'cache-control': 'public, max-age=604800, immutable' }
+		headers: { 'cache-control': 'public, max-age=3600, stale-while-revalidate=86400' }
 	});
 };

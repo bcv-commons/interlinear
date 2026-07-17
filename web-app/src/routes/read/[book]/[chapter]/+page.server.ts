@@ -23,9 +23,15 @@ export const load: PageServerLoad = async ({ params, setHeaders, fetch }) => {
 
 	const book = getBook(bookId)!;
 
-	// A given chapter's Hebrew/Greek + translation text never changes at
-	// runtime, so this is safe to cache aggressively (at the CDN and browser).
-	setHeaders({ 'cache-control': 'public, max-age=604800, immutable' });
+	// Cache, but not with `immutable` and not for a long fixed window — a
+	// given chapter's text is *usually* stable, but it's served by a
+	// third-party data-api that can and does correct/republish data (e.g.
+	// a translation-source fix). `immutable` tells browsers to never
+	// revalidate for the full max-age, so a bug fix upstream wouldn't
+	// reach anyone with a cached copy for up to that long. A short
+	// max-age + stale-while-revalidate still avoids most repeat-view
+	// round-trips while keeping fixes visible within the hour.
+	setHeaders({ 'cache-control': 'public, max-age=3600, stale-while-revalidate=86400' });
 
 	const { hebrewGreekWords, translationLines } = await getChapterData(fetch, bookId, chapter);
 

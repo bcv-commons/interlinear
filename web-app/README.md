@@ -82,9 +82,11 @@ to be removed.
 - Settings: light/dark/system theme, independent font-size sliders for the
   Hebrew/Greek and translation panels, and gloss language — all persisted
   to `localStorage`.
-- All chapter/word/lexicon responses are cached aggressively
-  (`Cache-Control: public, immutable`) since none of this reference data
-  changes at runtime.
+- Chapter/word/similar-verses responses are cached (`max-age=3600,
+stale-while-revalidate=86400`) — deliberately _not_ `immutable`, since
+  the backing data-api is a third-party service that can and does
+  correct/republish its data (learned the hard way: a translation-text fix
+  upstream was invisible to anyone with a 7-day `immutable`-cached copy).
 
 ## Not yet ported
 

@@ -12,7 +12,10 @@ export const GET: RequestHandler = async ({ params, fetch, url }) => {
 
 	const result = await getSimilarVerses(fetch, strongsCode, mode, text);
 
+	// Short cache — see the chapter route's load function for why (the
+	// backing data-api can correct/republish data, so a long fixed window
+	// risks hiding a fix behind stale cached responses).
 	return json(result, {
-		headers: { 'cache-control': 'public, max-age=86400, stale-while-revalidate=604800' }
+		headers: { 'cache-control': 'public, max-age=3600, stale-while-revalidate=86400' }
 	});
 };

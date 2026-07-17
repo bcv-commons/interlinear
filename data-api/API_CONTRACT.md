@@ -44,9 +44,20 @@ Not required for correctness — `web-app`'s own routes
 set their own `Cache-Control` headers on the responses the browser/CDN
 actually see, independent of whatever your backend returns. Setting
 `Cache-Control` here too is still a good idea if anything else (a CDN, a
-reverse proxy cache) sits in front of your service directly, since all four
-endpoints below return data that's static (or near-static — see
-`/languages`) at runtime.
+reverse proxy cache) sits in front of your service directly.
+
+**Don't use `immutable`, and don't set a long fixed `max-age`, even though
+the data below is described as "never changes at runtime" for a given id.**
+That description is about *this* endpoint's semantics (the same id always
+means the same thing), not a guarantee that the backend serving it will
+never correct/republish its data — in production, a backend implementing
+this contract turned out to actively fix upstream data issues (a garbled
+translation-text source) over time. `immutable` explicitly tells browsers
+to skip revalidation for the entire `max-age`, so that fix was invisible to
+anyone with a cached response until the cache expired. Prefer something
+like `public, max-age=3600, stale-while-revalidate=86400` — short enough
+that a real fix reaches users within the hour, still avoiding most
+repeat-view round-trips.
 
 ---
 
@@ -87,8 +98,9 @@ book+chapter prefix); `translationLines` likewise, including any non-verse
 lines (chapter headings, section headings, blank-line markers) that share
 the chapter's `reference` range.
 
-**Never changes at runtime** for a given `:book`/`:chapter` — safe to cache
-indefinitely (until you redeploy with updated source data).
+The same `:book`/`:chapter` always means the same content in principle —
+but see "Caching" above before treating that as license for a long/immutable
+cache lifetime.
 
 ## `GET /word/:wordId?lang=<code>`
 
@@ -126,8 +138,9 @@ only regardless of `lang` — there's no per-language lexicon data upstream).
 
 **Response 404** if `:wordId` doesn't exist.
 
-**Never changes at runtime** for a given `:wordId` + `lang` pair — safe to
-cache indefinitely.
+The same `:wordId` + `lang` pair always means the same content in
+principle — see "Caching" above before treating that as license for a
+long/immutable cache lifetime.
 
 ## `GET /similar/:strongsCode?mode=root|exact&text=<word>`
 
@@ -181,7 +194,9 @@ README for the specific indexes this requires if you're querying the same
 strongs→verses, exact mode joins
 text→verses).
 
-**Never changes at runtime** for a given `:strongsCode`/`mode`/`text`.
+The same `:strongsCode`/`mode`/`text` combination always means the same
+content in principle — see "Caching" above before treating that as license
+for a long/immutable cache lifetime.
 
 ## `GET /languages`
 
@@ -202,9 +217,9 @@ Should reflect whatever `lang` values `/word/:wordId?lang=<code>` will
 actually recognize — this is how the client populates its language picker,
 it doesn't hardcode a list. **Can change without a redeploy** if your
 backend supports adding a new language's data live (the bundled
-implementation scans its data directory on every request) — a short cache
-lifetime (the bundled implementation uses 1 hour) is more appropriate here
-than the "cache indefinitely" guidance for the other three endpoints.
+implementation scans its data directory on every request) — same short,
+non-`immutable` cache lifetime as the other three endpoints applies here
+too (see "Caching" above).
 
 ---
 
