@@ -28,15 +28,23 @@ Then open `http://localhost:5173` (redirects to Genesis 1).
 ## Environment variables
 
 - `DATA_API_URL` — base URL of the data-api service. Defaults to
-  `http://localhost:3000` for local dev; set to the deployed data-api's
-  URL (e.g. `https://data-api.yourdomain.com`) in Netlify's site settings.
+  `http://localhost:3000` for local dev. Include a path prefix if the
+  backend mounts the contract under one — e.g. production currently points
+  at `https://shoresh.up.qombi.com/interlinear` (a separate service that
+  implements `data-api/API_CONTRACT.md`, not `../data-api` itself).
 - `DATA_API_KEY` — optional shared secret, sent as `x-api-key` on every
-  request. Only needed if data-api was started with the same value set.
+  request. Only needed if the backend requires it.
 
 `DATA_API_URL` doesn't have to point at [`../data-api`](../data-api) — any
 backend that implements
 [`../data-api/API_CONTRACT.md`](../data-api/API_CONTRACT.md) works as a
-drop-in replacement.
+drop-in replacement. One real backend currently deviates from the contract
+in one way: its `/chapter/:book/:chapter` route takes a 3-letter USFM code
+(e.g. `GEN`) rather than the numeric book id the contract specifies —
+`src/lib/server/dataApi.ts`'s `getChapterData` translates for this via
+`bible-books.ts`'s `getUsfmCode()`. If you point this app at a backend that
+follows the contract literally (numeric id), that translation would need
+to be removed.
 
 ## What's included
 

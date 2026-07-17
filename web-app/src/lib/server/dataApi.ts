@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { getUsfmCode } from '$lib/bible-books';
 import type {
 	HebrewGreekWord,
 	TranslationLine,
@@ -29,7 +30,11 @@ export async function getChapterData(
 	bookId: number,
 	chapter: number
 ): Promise<{ hebrewGreekWords: HebrewGreekWord[]; translationLines: TranslationLine[] }> {
-	const response = await get(fetchFn, `/chapter/${bookId}/${chapter}`);
+	// The deployed data-api keys /chapter by the 3-letter USFM code (e.g.
+	// "GEN"), not the numeric book id used everywhere else in this app —
+	// translate only at this one call site so routes/UI/bible-books.ts
+	// stay numeric-id-based throughout.
+	const response = await get(fetchFn, `/chapter/${getUsfmCode(bookId)}/${chapter}`);
 	return response.json();
 }
 

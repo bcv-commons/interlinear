@@ -54,6 +54,15 @@ endpoints below return data that's static (or near-static — see
 
 `:book` and `:chapter` are positive integers (`:book` 1–66).
 
+**Deviation seen in the wild:** the production backend this client
+currently points at (a separate service, not the one in this directory)
+keys `:book` by the 3-letter USFM code (`GEN`, `MAT`, ...) instead, "kept
+consistent with every other route on that service." The client
+(`web-app/src/lib/server/dataApi.ts`) translates for this at the one call
+site via `bible-books.ts`'s `getUsfmCode()` — if you're implementing this
+contract fresh, prefer the numeric id as specified above; the translation
+shim is only there to match an existing backend's convention.
+
 **Response 200:**
 
 ```ts
