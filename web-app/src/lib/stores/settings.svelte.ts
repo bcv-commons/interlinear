@@ -7,6 +7,10 @@ interface SettingsData {
 	hebrewGreekFontScale: number;
 	translationFontScale: number;
 	glossLanguage: string;
+	// Alternate Bible-translation text for the second panel, fetched from
+	// bible.helloao.org — null means "use the default (English BSB via
+	// data-api)". A separate concept from `glossLanguage` above (word glosses).
+	alternateTranslation: { id: string; name: string; textDirection: 'ltr' | 'rtl' } | null;
 }
 
 const STORAGE_KEY = 'gbt-web-settings';
@@ -15,7 +19,8 @@ const defaults: SettingsData = {
 	theme: 'system',
 	hebrewGreekFontScale: 1,
 	translationFontScale: 1,
-	glossLanguage: 'eng'
+	glossLanguage: 'eng',
+	alternateTranslation: null
 };
 
 function loadFromStorage(): SettingsData {
@@ -34,6 +39,7 @@ class SettingsStore {
 	hebrewGreekFontScale = $state(defaults.hebrewGreekFontScale);
 	translationFontScale = $state(defaults.translationFontScale);
 	glossLanguage = $state(defaults.glossLanguage);
+	alternateTranslation = $state(defaults.alternateTranslation);
 
 	constructor() {
 		const initial = loadFromStorage();
@@ -41,6 +47,7 @@ class SettingsStore {
 		this.hebrewGreekFontScale = initial.hebrewGreekFontScale;
 		this.translationFontScale = initial.translationFontScale;
 		this.glossLanguage = initial.glossLanguage;
+		this.alternateTranslation = initial.alternateTranslation;
 
 		if (browser) {
 			$effect.root(() => {
@@ -49,7 +56,8 @@ class SettingsStore {
 						theme: this.theme,
 						hebrewGreekFontScale: this.hebrewGreekFontScale,
 						translationFontScale: this.translationFontScale,
-						glossLanguage: this.glossLanguage
+						glossLanguage: this.glossLanguage,
+						alternateTranslation: this.alternateTranslation
 					};
 					localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 					this.applyTheme();

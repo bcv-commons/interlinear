@@ -3,11 +3,12 @@
 	import SettingsMenu from './SettingsMenu.svelte';
 	import InterlinearPanel from './InterlinearPanel.svelte';
 	import TranslationPanel from './TranslationPanel.svelte';
+	import HelloaoPanel from './HelloaoPanel.svelte';
 	import WordHint from './WordHint.svelte';
 	import WordPopover from './WordPopover.svelte';
 	import type { BibleBook } from '$lib/bible-books';
 	import type { HebrewGreekWord, TranslationLine, WordDetails } from '$lib/types';
-	import { syncScrollPanels, resetScrollPanels } from '$lib/scrollSync';
+	import { syncScrollPanelsByVerse, resetScrollPanels } from '$lib/scrollSync';
 	import { settings } from '$lib/stores/settings.svelte';
 
 	let {
@@ -82,7 +83,7 @@
 
 	$effect(() => {
 		if (!interlinearEl || !translationEl) return;
-		return syncScrollPanels(interlinearEl, translationEl);
+		return syncScrollPanelsByVerse(interlinearEl, translationEl);
 	});
 
 	$effect(() => {
@@ -130,9 +131,20 @@
 		<section
 			bind:this={translationEl}
 			class="min-h-0 flex-1 overflow-y-auto p-4"
+			dir={settings.alternateTranslation?.textDirection ?? 'ltr'}
 			onclick={handlePanelBackgroundClick}
 		>
-			<TranslationPanel lines={translationLines} />
+			{#if settings.alternateTranslation}
+				{#key settings.alternateTranslation.id}
+					<HelloaoPanel
+						translationId={settings.alternateTranslation.id}
+						bookId={book.id}
+						{chapter}
+					/>
+				{/key}
+			{:else}
+				<TranslationPanel lines={translationLines} />
+			{/if}
 		</section>
 	</main>
 </div>

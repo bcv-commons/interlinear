@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { settings } from '$lib/stores/settings.svelte';
+	import TranslationPicker from './TranslationPicker.svelte';
 
 	let open = $state(false);
 	let languages = $state<{ code: string; name: string }[] | null>(null);
@@ -92,6 +93,16 @@
 						{/each}
 					</select>
 				{/if}
+			</label>
+
+			<label class="block">
+				<span class="mb-1 block text-sm font-semibold text-gray-500 dark:text-gray-400">
+					Second panel translation
+				</span>
+				<TranslationPicker
+					value={settings.alternateTranslation}
+					onChange={(v) => (settings.alternateTranslation = v)}
+				/>
 			</label>
 		</div>
 	{/if}

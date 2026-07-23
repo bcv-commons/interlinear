@@ -39,7 +39,7 @@
 	dir={isRtl ? 'rtl' : 'ltr'}
 >
 	{#each verseGroups as group (group.verse)}
-		<p>
+		<p data-verse={group.verse}>
 			<sup class="me-1 font-sans text-xs font-semibold text-gray-400 dark:text-gray-500"
 				>{group.verse}</sup
 			>{#each group.words as word (word.id)}

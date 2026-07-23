@@ -55,3 +55,21 @@ export interface SimilarVersesResult {
 	total: number;
 	verses: SimilarVerse[];
 }
+
+// Alternate Bible-translation text for the second (translation) panel,
+// fetched directly from bible.helloao.org — a separate, unrelated concept
+// from the word-gloss `glossLanguage` above. See $lib/server/helloao.ts.
+export interface HelloaoTranslation {
+	id: string;
+	name: string;
+	englishName: string;
+	language: string;
+	languageName: string;
+	languageEnglishName: string;
+	textDirection: 'ltr' | 'rtl';
+}
+
+export type HelloaoContentBlock =
+	| { type: 'heading'; content: string[] }
+	| { type: 'verse'; number: number; content: (string | { noteId: number })[] }
+	| { type: 'line_break' };

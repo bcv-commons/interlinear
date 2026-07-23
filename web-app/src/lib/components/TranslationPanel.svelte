@@ -16,13 +16,17 @@
 		| { kind: 'heading'; text: string }
 		| { kind: 'note'; text: string }
 		| { kind: 'break' }
-		| { kind: 'indented'; verse: number | null; text: string }
-		| { kind: 'paragraph'; parts: { verse: number | null; text: string }[] };
+		| { kind: 'indented'; verse: number | null; actualVerse: number; text: string }
+		| {
+				kind: 'paragraph';
+				parts: { verse: number | null; actualVerse: number; text: string }[];
+		  };
 
 	let blocks = $derived.by((): Block[] => {
 		const result: Block[] = [];
 		let lastVerseShown = -1;
-		let currentParagraph: { verse: number | null; text: string }[] | null = null;
+		let currentParagraph: { verse: number | null; actualVerse: number; text: string }[] | null =
+			null;
 
 		const flushParagraph = () => {
 			if (currentParagraph && currentParagraph.length > 0) {
@@ -56,12 +60,12 @@
 
 			if (INDENTED_FORMATS.has(line.format)) {
 				flushParagraph();
-				result.push({ kind: 'indented', verse: verseLabel, text });
+				result.push({ kind: 'indented', verse: verseLabel, actualVerse: verse, text });
 				continue;
 			}
 
 			currentParagraph ??= [];
-			currentParagraph.push({ verse: verseLabel, text });
+			currentParagraph.push({ verse: verseLabel, actualVerse: verse, text });
 		}
 		flushParagraph();
 		return result;
@@ -77,17 +81,19 @@
 		{:else if block.kind === 'break'}
 			<div class="h-1"></div>
 		{:else if block.kind === 'indented'}
-			<p class="ps-6 leading-relaxed">
+			<p class="ps-6 leading-relaxed" data-verse={block.actualVerse}>
 				{#if block.verse}<sup class="me-1 text-xs font-semibold text-gray-400 dark:text-gray-500"
 						>{block.verse}</sup
 					>{/if}{block.text}
 			</p>
 		{:else}
 			<p class="leading-relaxed">
-				{#each block.parts as part, j (j)}{#if part.verse}<sup
-							class="ms-1 me-1 text-xs font-semibold text-gray-400 dark:text-gray-500"
-							>{part.verse}</sup
-						>{/if}{part.text}
+				{#each block.parts as part, j (j)}<span data-verse={part.actualVerse}
+						>{#if part.verse}<sup
+								class="ms-1 me-1 text-xs font-semibold text-gray-400 dark:text-gray-500"
+								>{part.verse}</sup
+							>{/if}{part.text}</span
+					>
 				{/each}
 			</p>
 		{/if}

@@ -25,17 +25,52 @@ async function get(fetchFn: typeof fetch, path: string) {
 	return response;
 }
 
+// The contract (data-api/API_CONTRACT.md) specifies /chapter/:book/:chapter
+// keyed by the numeric book id, which the bundled data-api implements
+// literally. One production backend (shoresh) deviates and keys it by
+// 3-letter USFM code instead. Rather than requiring an env var to tell
+// these apart (easy to forget, and a mismatch 400s on *every* chapter
+// load), auto-detect it — remembering which style worked for the rest of
+// this server process so later requests don't pay the extra round-trip.
+// Try USFM first: production (Netlify, pointed at shoresh) is both the
+// higher-traffic deployment and the one least likely to benefit from the
+// in-process cache (serverless functions cold-start often), so it should
+// never eat a wasted failing call; local dev against the bundled data-api
+// (numeric) is a single long-lived process, so its one-time fallback probe
+// is comparatively free.
+let bookIdStyle: 'numeric' | 'usfm' | undefined;
+
 export async function getChapterData(
 	fetchFn: typeof fetch,
 	bookId: number,
 	chapter: number
 ): Promise<{ hebrewGreekWords: HebrewGreekWord[]; translationLines: TranslationLine[] }> {
-	// The deployed data-api keys /chapter by the 3-letter USFM code (e.g.
-	// "GEN"), not the numeric book id used everywhere else in this app —
-	// translate only at this one call site so routes/UI/bible-books.ts
-	// stay numeric-id-based throughout.
-	const response = await get(fetchFn, `/chapter/${getUsfmCode(bookId)}/${chapter}`);
+	if (bookIdStyle === undefined) {
+		const usfmResponse = await fetchChapter(fetchFn, getUsfmCode(bookId), chapter);
+		if (usfmResponse.ok) {
+			bookIdStyle = 'usfm';
+			return usfmResponse.json();
+		}
+		const numericResponse = await fetchChapter(fetchFn, bookId, chapter);
+		if (!numericResponse.ok) {
+			error(
+				numericResponse.status,
+				`data-api request to /chapter failed: ${numericResponse.statusText}`
+			);
+		}
+		bookIdStyle = 'numeric';
+		return numericResponse.json();
+	}
+
+	const bookParam = bookIdStyle === 'usfm' ? getUsfmCode(bookId) : bookId;
+	const response = await get(fetchFn, `/chapter/${bookParam}/${chapter}`);
 	return response.json();
+}
+
+function fetchChapter(fetchFn: typeof fetch, bookParam: string | number, chapter: number) {
+	return fetchFn(`${DATA_API_URL}/chapter/${bookParam}/${chapter}`, {
+		headers: DATA_API_KEY ? { 'x-api-key': DATA_API_KEY } : undefined
+	});
 }
 
 export async function getWordDetails(

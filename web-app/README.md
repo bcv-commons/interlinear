@@ -40,11 +40,11 @@ backend that implements
 [`../data-api/API_CONTRACT.md`](../data-api/API_CONTRACT.md) works as a
 drop-in replacement. One real backend currently deviates from the contract
 in one way: its `/chapter/:book/:chapter` route takes a 3-letter USFM code
-(e.g. `GEN`) rather than the numeric book id the contract specifies —
-`src/lib/server/dataApi.ts`'s `getChapterData` translates for this via
-`bible-books.ts`'s `getUsfmCode()`. If you point this app at a backend that
-follows the contract literally (numeric id), that translation would need
-to be removed.
+(e.g. `GEN`) rather than the numeric book id the contract specifies.
+`src/lib/server/dataApi.ts`'s `getChapterData` auto-detects which style a
+given `DATA_API_URL` expects (tries the numeric id first; if that 400s, it
+retries with the USFM code and remembers the result for the rest of the
+server process) — no environment variable or code change needed either way.
 
 ## What's included
 
@@ -87,6 +87,18 @@ stale-while-revalidate=86400`) — deliberately _not_ `immutable`, since
   the backing data-api is a third-party service that can and does
   correct/republish its data (learned the hard way: a translation-text fix
   upstream was invisible to anyone with a 7-day `immutable`-cached copy).
+- Alternate translation text for the second panel (Settings → "Second panel
+  translation") — a searchable autocomplete over the ~1256 translations /
+  ~1004 languages [bible.helloao.org](https://bible.helloao.org) offers,
+  matching on vernacular and English translation/language names. Picking one
+  swaps the _existing_ second panel's content (not a third panel); the first
+  (Hebrew/Greek interlinear) panel and its word-click behavior are completely
+  unaffected either way. This is fetched directly client-side
+  (`src/lib/server/helloao.ts`, proxied via `/api/helloao*`) — entirely
+  separate from data-api/shoresh and from the gloss-language feature above.
+  Not every helloao translation covers every book; an unavailable chapter
+  shows a plain "not available in this translation" message instead of an
+  error.
 
 ## Not yet ported
 
@@ -97,10 +109,8 @@ These exist in the Flutter app but were out of scope for this first pass:
   schema (see git history); only the UI/route is missing.
 - Scripture audio playback with verse-timing sync (`audio_timings.db` isn't
   wired up in data-api yet — see that project's README).
-- Translated Bible text in other languages (only the English Berean
-  Standard Bible is wired up — gloss languages are separate and do work,
-  see above) and app UI localization (the interface chrome itself is
-  English-only).
+- App UI localization (the interface chrome itself is English-only) — the
+  Bible text itself can now be shown in other languages, see above.
 - Offline/downloadable language packs (not needed for a server-backed app).
 - Reading-session tracking (daily goals/streaks).
 - Backup/restore and onboarding app-guide tour.

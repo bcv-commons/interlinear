@@ -69,10 +69,14 @@ repeat-view round-trips.
 currently points at (a separate service, not the one in this directory)
 keys `:book` by the 3-letter USFM code (`GEN`, `MAT`, ...) instead, "kept
 consistent with every other route on that service." The client
-(`web-app/src/lib/server/dataApi.ts`) translates for this at the one call
-site via `bible-books.ts`'s `getUsfmCode()` — if you're implementing this
-contract fresh, prefer the numeric id as specified above; the translation
-shim is only there to match an existing backend's convention.
+(`web-app/src/lib/server/dataApi.ts`) auto-detects which style a given
+backend expects — tries the USFM code (via `bible-books.ts`'s
+`getUsfmCode()`) first since that's what production actually needs, and if
+that 400s, falls back to the numeric id and remembers the result for the
+rest of the server process — so no configuration is needed either way. If
+you're implementing this contract fresh, prefer the numeric id as specified
+above; the USFM-first probe order is only there to match an
+existing backend's convention.
 
 **Response 200:**
 
