@@ -6,11 +6,15 @@
 	let {
 		words,
 		isRtl,
-		onWordClick
+		onWordClick,
+		hoveredWordId,
+		onWordHover
 	}: {
 		words: HebrewGreekWord[];
 		isRtl: boolean;
 		onWordClick: (wordId: number, anchorRect: DOMRect) => void;
+		hoveredWordId: number | null;
+		onWordHover: (wordId: number | null) => void;
 	} = $props();
 
 	interface VerseGroup {
@@ -46,10 +50,12 @@
 				<button
 					type="button"
 					data-word-btn
-					class="cursor-pointer rounded px-0.5 transition-colors hover:bg-amber-200/60 dark:hover:bg-amber-500/20"
+					class="cursor-pointer rounded px-0.5 transition-colors hover:bg-amber-200/60 dark:hover:bg-amber-500/20
+						{hoveredWordId === word.id ? 'bg-amber-200/60 dark:bg-amber-500/20' : ''}"
 					onclick={(e) =>
 						onWordClick(word.id, (e.currentTarget as HTMLElement).getBoundingClientRect())}
-					>{word.text}</button
+					onmouseenter={() => onWordHover(word.id)}
+					onmouseleave={() => onWordHover(null)}>{word.text}</button
 				>
 			{/each}
 		</p>

@@ -50,10 +50,16 @@
 
 		loading = true;
 		details = null;
+		// A failed/erroring fetch must resolve to `null`, not a truthy-but-
+		// malformed object — otherwise a transient network hiccup renders
+		// identically to a genuine "word not found" below.
 		fetch(`/api/word/${wordId}?lang=${encodeURIComponent(lang)}`)
-			.then((res) => res.json())
-			.then((data: WordDetails) => {
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data: WordDetails | null) => {
 				details = data;
+			})
+			.catch(() => {
+				details = null;
 			})
 			.finally(() => {
 				loading = false;

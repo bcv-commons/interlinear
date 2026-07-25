@@ -99,6 +99,17 @@ stale-while-revalidate=86400`) — deliberately _not_ `immutable`, since
   Not every helloao translation covers every book; an unavailable chapter
   shows a plain "not available in this translation" message instead of an
   error.
+- Word-click in the alternate-translation panel, for any translation with a
+  published [`bcv-commons/compact-alignments`](https://huggingface.co/datasets/bcv-commons/compact-alignments)
+  edition (~200 languages and growing, out of the ~1256 helloao offers) —
+  clicking an aligned word there opens the exact same hint/popover as the
+  Hebrew/Greek panel, for the original word(s) it renders. Resolved
+  entirely by matching Strong's numbers in sequence against the dataset's
+  published per-verse lexeme list (`src/lib/server/compactAlignments.ts`,
+  `src/lib/server/alignment.ts`) — no morphology/grammar lookup, no
+  per-language code, and no data-api/shoresh contract change; a translation
+  without a published edition (or an out-of-bounds/stale span, e.g. after
+  a source-text edit) just renders that word as plain, unaligned text.
 
 ## Not yet ported
 

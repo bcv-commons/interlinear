@@ -5,8 +5,10 @@
 		value,
 		onChange
 	}: {
-		value: { id: string; name: string; textDirection: 'ltr' | 'rtl' } | null;
-		onChange: (value: { id: string; name: string; textDirection: 'ltr' | 'rtl' } | null) => void;
+		value: { id: string; name: string; textDirection: 'ltr' | 'rtl'; language: string } | null;
+		onChange: (
+			value: { id: string; name: string; textDirection: 'ltr' | 'rtl'; language: string } | null
+		) => void;
 	} = $props();
 
 	let translations = $state<HelloaoTranslation[] | null>(null);
@@ -49,7 +51,12 @@
 	}
 
 	function selectTranslation(t: HelloaoTranslation) {
-		onChange({ id: t.id, name: displayLabel(t), textDirection: t.textDirection });
+		onChange({
+			id: t.id,
+			name: displayLabel(t),
+			textDirection: t.textDirection,
+			language: t.language
+		});
 		query = '';
 		listOpen = false;
 	}

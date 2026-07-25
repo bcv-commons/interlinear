@@ -69,7 +69,17 @@ export interface HelloaoTranslation {
 	textDirection: 'ltr' | 'rtl';
 }
 
+// A verse's own target-language tokens, each optionally aligned back to one
+// or more of our own `hebrewGreekWords` ids — see $lib/server/alignment.ts.
+// `wordIds` is null when this token has no alignment (either this specific
+// token/verse is unaligned, or the translation has no published
+// compact-alignments edition at all — most translations, for now).
+export interface HelloaoAlignedToken {
+	text: string;
+	wordIds: number[] | null;
+}
+
 export type HelloaoContentBlock =
 	| { type: 'heading'; content: string[] }
-	| { type: 'verse'; number: number; content: (string | { noteId: number })[] }
+	| { type: 'verse'; number: number; tokens: HelloaoAlignedToken[] }
 	| { type: 'line_break' };

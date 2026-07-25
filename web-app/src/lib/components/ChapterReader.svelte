@@ -43,15 +43,26 @@
 	let popover = $state<{ wordId: number; initialDetails: WordDetails | null } | null>(null);
 	let hintNonce = 0;
 
+	// Cross-panel hover highlight: hovering an aligned word in either panel
+	// highlights the same original word in both — set from whichever panel
+	// the pointer is over, read by both (InterlinearPanel checks its own
+	// word id; HelloaoPanel checks whether its token's aligned word ids
+	// include it), so this needs no per-panel-direction special-casing.
+	let hoveredWordId = $state<number | null>(null);
+
 	async function handleWordClick(wordId: number, anchorRect: DOMRect) {
 		hintNonce++;
 		const nonce = hintNonce;
 		hint = { wordId, anchorRect, details: null, nonce };
 
-		const response = await fetch(
+		// A failed/erroring fetch must still resolve to `null`, never a
+		// truthy-but-malformed object — otherwise a transient network hiccup
+		// looks identical to a genuine "word not found" downstream.
+		const details: WordDetails | null = await fetch(
 			`/api/word/${wordId}?lang=${encodeURIComponent(settings.glossLanguage)}`
-		);
-		const details: WordDetails = await response.json();
+		)
+			.then((res) => (res.ok ? res.json() : null))
+			.catch(() => null);
 		// Ignore if the user already dismissed/replaced/promoted this hint.
 		if (hint?.nonce === nonce) hint = { ...hint, details };
 	}
@@ -124,6 +135,8 @@
 				words={hebrewGreekWords}
 				isRtl={book.testament === 'ot'}
 				onWordClick={handleWordClick}
+				{hoveredWordId}
+				onWordHover={(wordId) => (hoveredWordId = wordId)}
 			/>
 		</section>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -138,8 +151,12 @@
 				{#key settings.alternateTranslation.id}
 					<HelloaoPanel
 						translationId={settings.alternateTranslation.id}
+						iso={settings.alternateTranslation.language}
 						bookId={book.id}
 						{chapter}
+						onWordClick={handleWordClick}
+						{hoveredWordId}
+						onWordHover={(wordId) => (hoveredWordId = wordId)}
 					/>
 				{/key}
 			{:else}

@@ -15,8 +15,25 @@ import type {
 const DATA_API_URL = env.DATA_API_URL ?? 'http://localhost:3000';
 const DATA_API_KEY = env.DATA_API_KEY;
 
+// A 4xx means the request itself was invalid/not-found — retrying won't
+// change that. Anything else (5xx, or the fetch throwing outright — DNS,
+// connection reset, timeout) looks transient against a third-party
+// service reached over the network, so it's worth one retry before
+// surfacing an error — otherwise a brief shoresh blip gets permanently
+// (and misleadingly) shown to the user as e.g. "Word not found."
+async function fetchWithRetry(fetchFn: typeof fetch, url: string, init?: RequestInit) {
+	try {
+		const response = await fetchFn(url, init);
+		if (response.ok || (response.status >= 400 && response.status < 500)) return response;
+	} catch {
+		// fall through to the retry below
+	}
+	await new Promise((resolve) => setTimeout(resolve, 300));
+	return fetchFn(url, init);
+}
+
 async function get(fetchFn: typeof fetch, path: string) {
-	const response = await fetchFn(`${DATA_API_URL}${path}`, {
+	const response = await fetchWithRetry(fetchFn, `${DATA_API_URL}${path}`, {
 		headers: DATA_API_KEY ? { 'x-api-key': DATA_API_KEY } : undefined
 	});
 	if (!response.ok) {
@@ -68,7 +85,7 @@ export async function getChapterData(
 }
 
 function fetchChapter(fetchFn: typeof fetch, bookParam: string | number, chapter: number) {
-	return fetchFn(`${DATA_API_URL}/chapter/${bookParam}/${chapter}`, {
+	return fetchWithRetry(fetchFn, `${DATA_API_URL}/chapter/${bookParam}/${chapter}`, {
 		headers: DATA_API_KEY ? { 'x-api-key': DATA_API_KEY } : undefined
 	});
 }

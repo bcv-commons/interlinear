@@ -10,7 +10,12 @@ interface SettingsData {
 	// Alternate Bible-translation text for the second panel, fetched from
 	// bible.helloao.org — null means "use the default (English BSB via
 	// data-api)". A separate concept from `glossLanguage` above (word glosses).
-	alternateTranslation: { id: string; name: string; textDirection: 'ltr' | 'rtl' } | null;
+	alternateTranslation: {
+		id: string;
+		name: string;
+		textDirection: 'ltr' | 'rtl';
+		language: string;
+	} | null;
 }
 
 const STORAGE_KEY = 'gbt-web-settings';
