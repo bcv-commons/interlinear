@@ -3,7 +3,6 @@ import { env } from '$env/dynamic/private';
 import { getUsfmCode } from '$lib/bible-books';
 import type {
 	HebrewGreekWord,
-	TranslationLine,
 	WordDetails,
 	SimilarVersesMode,
 	SimilarVersesResult
@@ -57,11 +56,15 @@ async function get(fetchFn: typeof fetch, path: string) {
 // is comparatively free.
 let bookIdStyle: 'numeric' | 'usfm' | undefined;
 
+// Also returns `translationLines` per the data-api contract, but the
+// web-app no longer consumes it — the target-language pane is always the
+// alignment-capable helloao panel now (ChapterReader.svelte), which
+// fetches its own text client-side.
 export async function getChapterData(
 	fetchFn: typeof fetch,
 	bookId: number,
 	chapter: number
-): Promise<{ hebrewGreekWords: HebrewGreekWord[]; translationLines: TranslationLine[] }> {
+): Promise<{ hebrewGreekWords: HebrewGreekWord[] }> {
 	if (bookIdStyle === undefined) {
 		const usfmResponse = await fetchChapter(fetchFn, getUsfmCode(bookId), chapter);
 		if (usfmResponse.ok) {

@@ -16,5 +16,4 @@
 	previous={data.previous}
 	next={data.next}
 	hebrewGreekWords={data.hebrewGreekWords}
-	translationLines={data.translationLines}
 />

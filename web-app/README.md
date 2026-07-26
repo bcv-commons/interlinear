@@ -48,9 +48,9 @@ server process) — no environment variable or code change needed either way.
 
 ## What's included
 
-- Word-by-word Hebrew/Greek interlinear reader alongside the English
-  translation (Berean Standard Bible), with headings, poetry indenting, and
-  footnote stripping ported from the USFM formatting codes.
+- Word-by-word Hebrew/Greek interlinear reader alongside a target-language
+  translation (English Berean Standard Bible by default), with headings and
+  footnote-marker stripping.
 - Book/chapter navigation (dropdowns + prev/next), RTL for Hebrew (OT) and
   LTR for Greek (NT), rendered in the SBL BLit font.
 - Synced scrolling between the two panels — proportional (not pixel- or
@@ -87,29 +87,30 @@ stale-while-revalidate=86400`) — deliberately _not_ `immutable`, since
   the backing data-api is a third-party service that can and does
   correct/republish its data (learned the hard way: a translation-text fix
   upstream was invisible to anyone with a 7-day `immutable`-cached copy).
-- Alternate translation text for the second panel (Settings → "Second panel
-  translation") — a searchable autocomplete over the ~1256 translations /
-  ~1004 languages [bible.helloao.org](https://bible.helloao.org) offers,
-  matching on vernacular and English translation/language names. Picking one
-  swaps the _existing_ second panel's content (not a third panel); the first
-  (Hebrew/Greek interlinear) panel and its word-click behavior are completely
-  unaffected either way. This is fetched directly client-side
-  (`src/lib/server/helloao.ts`, proxied via `/api/helloao*`) — entirely
-  separate from data-api/shoresh and from the gloss-language feature above.
+- The second panel is always [bible.helloao.org](https://bible.helloao.org)-backed
+  (English Berean Standard Bible by default) — no separate data-api/shoresh-
+  sourced translation path. Switch it to any of the ~1256 translations /
+  ~1004 languages helloao offers via Settings → "Second panel translation",
+  a searchable autocomplete matching on vernacular and English
+  translation/language names. Picking one swaps the _existing_ second
+  panel's content (not a third panel); the first (Hebrew/Greek interlinear)
+  panel and its word-click behavior are completely unaffected either way.
   Not every helloao translation covers every book; an unavailable chapter
   shows a plain "not available in this translation" message instead of an
   error.
-- Word-click in the alternate-translation panel, for any translation with a
-  published [`bcv-commons/compact-alignments`](https://huggingface.co/datasets/bcv-commons/compact-alignments)
-  edition (~200 languages and growing, out of the ~1256 helloao offers) —
-  clicking an aligned word there opens the exact same hint/popover as the
-  Hebrew/Greek panel, for the original word(s) it renders. Resolved
-  entirely by matching Strong's numbers in sequence against the dataset's
-  published per-verse lexeme list (`src/lib/server/compactAlignments.ts`,
-  `src/lib/server/alignment.ts`) — no morphology/grammar lookup, no
-  per-language code, and no data-api/shoresh contract change; a translation
-  without a published edition (or an out-of-bounds/stale span, e.g. after
-  a source-text edit) just renders that word as plain, unaligned text.
+- Word-click in the second panel, for any translation with a published
+  [`bcv-commons/compact-alignments`](https://huggingface.co/datasets/bcv-commons/compact-alignments)
+  edition (~200 languages and growing, out of the ~1256 helloao offers,
+  including the default English BSB) — clicking an aligned word there opens
+  the exact same hint/popover as the Hebrew/Greek panel, for the original
+  word(s) it renders, and hovering an aligned word in either panel
+  highlights the match in the other. Resolved entirely by matching Strong's
+  numbers in sequence against the dataset's published per-verse lexeme
+  list (`src/lib/server/compactAlignments.ts`, `src/lib/server/alignment.ts`)
+  — no morphology/grammar lookup, no per-language code, and no data-api/
+  shoresh contract change; a translation without a published edition (or an
+  out-of-bounds/stale span, e.g. after a source-text edit) just renders
+  that word as plain, unaligned text.
 
 ## Not yet ported
 

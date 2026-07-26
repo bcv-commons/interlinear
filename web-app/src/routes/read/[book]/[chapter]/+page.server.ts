@@ -33,7 +33,11 @@ export const load: PageServerLoad = async ({ params, setHeaders, fetch }) => {
 	// round-trips while keeping fixes visible within the hour.
 	setHeaders({ 'cache-control': 'public, max-age=3600, stale-while-revalidate=86400' });
 
-	const { hebrewGreekWords, translationLines } = await getChapterData(fetch, bookId, chapter);
+	// translationLines (the data-api/shoresh-sourced default translation) is
+	// intentionally unused now — the target-language pane is always the
+	// alignment-capable helloao panel (ChapterReader.svelte), which fetches
+	// its own text client-side.
+	const { hebrewGreekWords } = await getChapterData(fetch, bookId, chapter);
 
 	return {
 		book,
@@ -41,7 +45,6 @@ export const load: PageServerLoad = async ({ params, setHeaders, fetch }) => {
 		books: BIBLE_BOOKS,
 		previous: getPreviousChapter(bookId, chapter),
 		next: getNextChapter(bookId, chapter),
-		hebrewGreekWords,
-		translationLines
+		hebrewGreekWords
 	};
 };

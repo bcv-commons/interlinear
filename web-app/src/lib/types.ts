@@ -4,12 +4,6 @@ export interface HebrewGreekWord {
 	strongsCode: string | null;
 }
 
-export interface TranslationLine {
-	reference: number;
-	text: string;
-	format: string;
-}
-
 export interface WordDetails {
 	id: number;
 	text: string;

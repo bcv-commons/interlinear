@@ -2,12 +2,11 @@
 	import BookChapterNav from './BookChapterNav.svelte';
 	import SettingsMenu from './SettingsMenu.svelte';
 	import InterlinearPanel from './InterlinearPanel.svelte';
-	import TranslationPanel from './TranslationPanel.svelte';
 	import HelloaoPanel from './HelloaoPanel.svelte';
 	import WordHint from './WordHint.svelte';
 	import WordPopover from './WordPopover.svelte';
 	import type { BibleBook } from '$lib/bible-books';
-	import type { HebrewGreekWord, TranslationLine, WordDetails } from '$lib/types';
+	import type { HebrewGreekWord, WordDetails } from '$lib/types';
 	import { syncScrollPanelsByVerse, resetScrollPanels } from '$lib/scrollSync';
 	import { settings } from '$lib/stores/settings.svelte';
 
@@ -17,8 +16,7 @@
 		books,
 		previous,
 		next,
-		hebrewGreekWords,
-		translationLines
+		hebrewGreekWords
 	}: {
 		book: BibleBook;
 		chapter: number;
@@ -26,8 +24,16 @@
 		previous: { bookId: number; chapter: number } | null;
 		next: { bookId: number; chapter: number } | null;
 		hebrewGreekWords: HebrewGreekWord[];
-		translationLines: TranslationLine[];
 	} = $props();
+
+	// The target-language pane is always the alignment-capable helloao
+	// panel now — word-click alignment should be on by default whenever
+	// data supports it, not just when a user explicitly picks a
+	// translation. English BSB has a published compact-alignments edition
+	// (verified), so it's the default rather than the old data-api-sourced,
+	// never-aligned TranslationPanel.
+	const defaultTranslation = { id: 'BSB', language: 'eng', textDirection: 'ltr' as const };
+	let activeTranslation = $derived(settings.alternateTranslation ?? defaultTranslation);
 
 	// Three levels of word info, ported from the Flutter app's tap (level 1,
 	// a lightweight floating gloss-only hint) / long-press (level 2, the
@@ -144,24 +150,20 @@
 		<section
 			bind:this={translationEl}
 			class="min-h-0 flex-1 overflow-y-auto p-4"
-			dir={settings.alternateTranslation?.textDirection ?? 'ltr'}
+			dir={activeTranslation.textDirection}
 			onclick={handlePanelBackgroundClick}
 		>
-			{#if settings.alternateTranslation}
-				{#key settings.alternateTranslation.id}
-					<HelloaoPanel
-						translationId={settings.alternateTranslation.id}
-						iso={settings.alternateTranslation.language}
-						bookId={book.id}
-						{chapter}
-						onWordClick={handleWordClick}
-						{hoveredWordId}
-						onWordHover={(wordId) => (hoveredWordId = wordId)}
-					/>
-				{/key}
-			{:else}
-				<TranslationPanel lines={translationLines} />
-			{/if}
+			{#key activeTranslation.id}
+				<HelloaoPanel
+					translationId={activeTranslation.id}
+					iso={activeTranslation.language}
+					bookId={book.id}
+					{chapter}
+					onWordClick={handleWordClick}
+					{hoveredWordId}
+					onWordHover={(wordId) => (hoveredWordId = wordId)}
+				/>
+			{/key}
 		</section>
 	</main>
 </div>
