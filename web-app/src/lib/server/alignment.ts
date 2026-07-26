@@ -50,11 +50,15 @@ export function isAlignableSegment(segment: string): boolean {
 
 /**
  * Strips the H/G testament letter and any trailing lowercase sense-split
- * letter from a `strongsCode` (e.g. "H1254a" -> 1254, "G3588" -> 3588) so
- * it can be compared against a compact-alignments lexeme number, which
- * publishes the bare integer with no letter of either kind (see
- * docs/compact-alignments.md's `_lexemes.json` — verified: our own
- * "H1254a" corresponds to their published "1254").
+ * letter from a Strong's-style code (e.g. "H1254a" -> 1254, "G3588" -> 3588,
+ * "6960a" -> 6960) so it can be compared purely by lexeme *number* — the
+ * published `_lexemes.json` sequence isn't always the bare integer some
+ * verses' were (GEN 1:1's "1254" has no letter), it can carry its own
+ * trailing sense-split letter too (GEN 1:9's "6960a", 1:10's "4723a"), and
+ * that letter isn't guaranteed to match ours (our own word for GEN 1:9 is
+ * "H6960b", not "H6960a"). Comparing on the number alone — via `parseInt`,
+ * not `Number`, since `Number("6960a")` is `NaN` and silently fails every
+ * match — is what both sides actually need to agree on.
  */
 function normalizeLexemeNumber(code: string): number {
 	return parseInt(code.replace(/^[HG]/, '').replace(/[a-z]$/, ''), 10);
@@ -111,7 +115,7 @@ export function alignVerse(
 	const wordIdByOrdinal: (number | undefined)[] = [];
 	let pointer = 0;
 	for (let ordinal = 0; ordinal < alignment.lexemes.length; ordinal++) {
-		const targetLexeme = Number(alignment.lexemes[ordinal]);
+		const targetLexeme = normalizeLexemeNumber(alignment.lexemes[ordinal]);
 		let found: number | undefined;
 		while (pointer < verseWords.length) {
 			const word = verseWords[pointer];
