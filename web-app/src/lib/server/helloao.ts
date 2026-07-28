@@ -55,6 +55,14 @@ export async function getHelloaoChapter(
 			`helloao.org request for ${translationId}/${usfmCode}/${chapter} failed`
 		);
 	}
+	// A missing/invalid translation id doesn't 404 here — helloao.org falls
+	// back to serving its own docs site (200, text/html) instead. Verified
+	// live against a sample of translation ids known to be unreachable
+	// (bcv-commons/bibles' catalog-overlap.json `r: false` entries): all
+	// returned HTTP 200 with an HTML docs page, not JSON. Treat that the
+	// same as a 404 (unavailable) rather than letting `.json()` throw.
+	const contentType = response.headers.get('content-type') ?? '';
+	if (!contentType.includes('json')) return null;
 	const data = await response.json();
 	const rawBlocks: {
 		type: string;
